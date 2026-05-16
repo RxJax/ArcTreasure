@@ -31,10 +31,8 @@ const StatCard = ({ icon: Icon, label, value, color, delay }) => (
 const Dashboard = () => {
   const { stats, claimMissionReward } = useGame();
 
-  const activities = [
-    { id: 1, text: "Journal: 0xA3... recovered a Mythic Idol in Desert Ruins", time: "2m ago", type: 'relic' },
-    { id: 2, text: "Expedition: 0xB1... chartered a new route to Pirate Island", time: "5m ago", type: 'map' },
-    { id: 3, text: "Milestone: 0xD7... promoted to Master Archaeologist", time: "12m ago", type: 'rank' },
+  const activities = (stats.history || []).length > 0 ? stats.history : [
+    { id: 1, text: "Journal: No entries yet. Start your expedition!", time: "Now", type: 'relic' },
   ];
 
   return (

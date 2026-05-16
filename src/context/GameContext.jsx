@@ -78,6 +78,7 @@ const DEFAULT_STATS = {
   streakDays: 1,
   level: 1,
   rank: 'Beginner Explorer',
+  history: [], // Added history tracking
 };
 
 const DEFAULT_TOOLS = {
@@ -171,7 +172,7 @@ export const GameProvider = ({ children }) => {
 
             if (userDoc && userDoc.exists()) {
               const data = userDoc.data();
-              setStats(prev => ({ ...prev, ...(data.stats || {}) }));
+              setStats(prev => ({ ...DEFAULT_STATS, ...(data.stats || {}) }));
               setInventory(data.inventory || []);
               setUnlockedMaps(data.unlockedMaps || ['Desert Ruins']);
               setTools(data.tools || DEFAULT_TOOLS);
@@ -187,7 +188,7 @@ export const GameProvider = ({ children }) => {
           const savedProgress = localStorage.getItem(`arc_treasure_${userAddress}`);
           if (savedProgress) {
             const data = JSON.parse(savedProgress);
-            setStats(prev => ({ ...prev, ...(data.stats || {}) }));
+            setStats(prev => ({ ...DEFAULT_STATS, ...(data.stats || {}) }));
             setInventory(data.inventory || []);
             setUnlockedMaps(data.unlockedMaps || ['Desert Ruins']);
             setTools(data.tools || DEFAULT_TOOLS);
@@ -233,7 +234,7 @@ export const GameProvider = ({ children }) => {
   };
 
   const saveProgress = async () => {
-    if (account && db) {
+    if (account) {
       const data = { 
         stats, 
         inventory, 
@@ -247,10 +248,13 @@ export const GameProvider = ({ children }) => {
       localStorage.setItem(`arc_treasure_${account}`, JSON.stringify(data));
       
       // Save to Firestore (Track every user)
-      try {
-        await setDoc(doc(db, "users", account), data, { merge: true });
-      } catch (e) {
-        console.warn("Firestore sync failed:", e);
+      if (db && db.app.options.apiKey && !db.app.options.apiKey.includes("YOUR_API_KEY")) {
+        try {
+          await setDoc(doc(db, "users", account), data, { merge: true });
+          console.log("Progress saved to Firestore.");
+        } catch (e) {
+          console.warn("Firestore sync failed:", e);
+        }
       }
     }
   };
@@ -266,6 +270,16 @@ export const GameProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, [stats, inventory, unlockedMaps, tools]);
 
+  const addHistory = (text, type = 'general') => {
+    setStats(prev => ({
+      ...prev,
+      history: [
+        { id: Date.now(), text, time: 'Just now', type, timestamp: Date.now() },
+        ...(prev.history || []).slice(0, 49) // Keep last 50 events
+      ]
+    }));
+  };
+
   const addXP = (amount) => {
     setStats(prev => {
       const newXP = prev.xp + amount;
@@ -274,9 +288,6 @@ export const GameProvider = ({ children }) => {
       
       const newlyUnlockedMaps = [];
       if (newLevel >= 15 && !prev.unlockedMaps?.includes('Pirate Island')) newlyUnlockedMaps.push('Pirate Island');
-      // The following maps are "Coming Soon" but we can still track their level gates if needed
-      // However, the request implies they should be level-gated even if coming soon.
-      // We'll update the thresholds here.
       if (newLevel >= 30 && !prev.unlockedMaps?.includes('Jungle Temple')) newlyUnlockedMaps.push('Jungle Temple');
       if (newLevel >= 50 && !prev.unlockedMaps?.includes('Ancient Cave')) newlyUnlockedMaps.push('Ancient Cave');
       if (newLevel >= 100 && !prev.unlockedMaps?.includes('Volcano Zone')) newlyUnlockedMaps.push('Volcano Zone');
@@ -287,13 +298,28 @@ export const GameProvider = ({ children }) => {
       else if (newLevel >= 15) newRank = 'Pirate Raider';
       else if (newLevel >= 5) newRank = 'Treasure Hunter';
 
+      const newHistory = [...(prev.history || [])];
       if (newLevel > prev.level) {
-        console.log("Level Up! New Level:", newLevel);
-        // We could trigger a global notification here
+        newHistory.unshift({
+          id: Date.now(),
+          text: `Level Up! You've reached Level ${newLevel} and became a ${newRank}!`,
+          time: 'Just now',
+          type: 'rank',
+          timestamp: Date.now()
+        });
       }
 
       if (newlyUnlockedMaps.length > 0) {
         setUnlockedMaps(prevMaps => [...prevMaps, ...newlyUnlockedMaps]);
+        newlyUnlockedMaps.forEach(map => {
+          newHistory.unshift({
+            id: Date.now() + Math.random(),
+            text: `New Territory Discovered: ${map} is now accessible!`,
+            time: 'Just now',
+            type: 'map',
+            timestamp: Date.now()
+          });
+        });
       }
 
       return { 
@@ -301,6 +327,7 @@ export const GameProvider = ({ children }) => {
         xp: newXP, 
         level: newLevel, 
         rank: newRank,
+        history: newHistory.slice(0, 50),
         unlockedMaps: [...(prev.unlockedMaps || ['Desert Ruins']), ...newlyUnlockedMaps]
       };
     });
@@ -311,37 +338,45 @@ export const GameProvider = ({ children }) => {
   };
 
   const addChestOpened = () => {
-    setStats(prev => ({ ...prev, chestsOpened: (prev.chestsOpened || 0) + 1 }));
+    setStats(prev => ({ 
+      ...prev, 
+      chestsOpened: (prev.chestsOpened || 0) + 1,
+      history: [
+        { id: Date.now(), text: `Unlocked an Ancient Chest and claimed its secrets!`, time: 'Just now', type: 'chest', timestamp: Date.now() },
+        ...(prev.history || [])
+      ].slice(0, 50)
+    }));
   };
 
   const claimMissionReward = async (missionId) => {
-    console.log("Claiming mission reward for:", missionId);
     if (stats.claimedMissions?.includes(missionId)) {
       alert("Already claimed today!");
       return;
     }
 
     const success = await performAction(`claim_${missionId}_reward`, "1.0");
-    console.log("Claim transaction success:", success);
     
     if (success) {
       setStats(prev => {
         let newGold = prev.gold;
         let newXP = prev.xp;
-        let newLevel = prev.level;
-        let newRank = prev.rank;
+        let missionName = "";
 
-        if (missionId === 'dig') newGold += 200;
+        if (missionId === 'dig') {
+          newGold += 200;
+          missionName = "Recover 5 hidden treasures";
+        }
         if (missionId === 'chest') {
           newXP += 500;
-          newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
-          // Rank logic... simplified for now
+          missionName = "Unlock 3 ancient chests";
         }
-
         if (missionId === 'rare') {
           const rareChestItem = { name: "Mystery Chest (Rare)", rarity: "Epic", icon: "🎁", value: 1000 };
           setInventory(inv => [...inv, { ...rareChestItem, id: Date.now() }]);
+          missionName = "Identify a Rare Relic";
         }
+
+        const newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
 
         return {
           ...prev,
@@ -352,10 +387,13 @@ export const GameProvider = ({ children }) => {
           lastClaimed: {
             ...(prev.lastClaimed || {}),
             [missionId]: Date.now()
-          }
+          },
+          history: [
+            { id: Date.now(), text: `Completed Mission: ${missionName}!`, time: 'Just now', type: 'relic', timestamp: Date.now() },
+            ...(prev.history || [])
+          ].slice(0, 50)
         };
       });
-      console.log("Mission reward applied to state.");
     }
   };
 
@@ -375,7 +413,6 @@ export const GameProvider = ({ children }) => {
       setStats(prev => ({
         ...prev,
         claimedMissions: prev.claimedMissions.filter(id => !missionsToReset.includes(id)),
-        // Also reset the counters for those missions
         treasuresFound: missionsToReset.includes('dig') ? 0 : prev.treasuresFound,
         chestsOpened: missionsToReset.includes('chest') ? 0 : prev.chestsOpened,
         rareLootCount: missionsToReset.includes('rare') ? 0 : prev.rareLootCount
@@ -392,7 +429,6 @@ export const GameProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // Force network switch again just in case
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
@@ -401,16 +437,13 @@ export const GameProvider = ({ children }) => {
       } catch (e) {}
 
       const signer = await provider.getSigner();
-      console.log("Signer obtained, sending transaction to:", TREASURY_ADDRESS);
       
       const tx = await signer.sendTransaction({
         to: TREASURY_ADDRESS,
         value: ethers.parseUnits(cost, 18),
       });
       
-      console.log("Transaction sent:", tx.hash);
       await tx.wait();
-      console.log("Transaction confirmed!");
       return true;
     } catch (error) {
       console.error(`${actionName} failed`, error);
@@ -439,7 +472,8 @@ export const GameProvider = ({ children }) => {
       setActiveMap,
       setInventory,
       setTools,
-      setStats
+      setStats,
+      addHistory
     }}>
       {children}
     </GameContext.Provider>

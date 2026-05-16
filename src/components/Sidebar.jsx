@@ -90,6 +90,17 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
           <div className="w-2 h-2 rounded-full bg-adventure-jungle animate-pulse" />
           <p className="font-serif text-[10px] text-adventure-sand/40 truncate italic">{account}</p>
         </div>
+        <div className="mb-4 p-3 bg-adventure-brown/10 rounded-lg border border-adventure-gold/10">
+          <p className="font-display text-[9px] text-adventure-gold/60 uppercase tracking-widest mb-1">Architect</p>
+          <a 
+            href="https://x.com/rxjax007" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="font-display font-bold text-xs text-adventure-amber hover:text-adventure-gold transition-colors flex items-center gap-2"
+          >
+            RxJax <span className="text-[10px] font-normal opacity-50">@rxjax007</span>
+          </a>
+        </div>
         <button className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-adventure-brown/50 text-adventure-sand/40 hover:text-adventure-amber hover:border-adventure-amber/50 transition-all font-display text-[10px] tracking-widest uppercase">
           <LogOut size={16} />
           Abandon Expedition
