@@ -62,6 +62,19 @@ const Dashboard = () => {
                 <Flame size={16} />
                 {stats.streakDays} DAY EXPEDITION STREAK
               </div>
+              
+              <a 
+                href="https://x.com/rxjax007"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 px-5 py-2.5 bg-black/40 backdrop-blur-md border border-adventure-amber/30 rounded-full hover:border-adventure-amber transition-all duration-300"
+              >
+                <div className="w-6 h-6 rounded-full bg-adventure-amber flex items-center justify-center text-adventure-dark font-black text-[10px]">RX</div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-adventure-sand/50 uppercase tracking-tighter leading-none">Architect</span>
+                  <span className="text-xs text-adventure-amber font-display font-bold group-hover:text-adventure-gold transition-colors">@rxjax007</span>
+                </div>
+              </a>
             </div>
           </motion.div>
         </div>

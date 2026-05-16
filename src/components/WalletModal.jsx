@@ -82,9 +82,21 @@ const WalletModal = () => {
             )}
           </button>
 
-          <p className="mt-10 font-display text-adventure-brown/40 text-[10px] font-black tracking-[0.3em] uppercase">
+          <p className="mt-10 font-display text-adventure-brown/40 text-[10px] font-black tracking-[0.3em] uppercase mb-4">
             MetaMask Required • Protocol: Arc Testnet
           </p>
+          
+          <div className="flex items-center gap-2 pt-6 border-t border-adventure-brown/10 w-full justify-center">
+            <span className="font-display text-[9px] text-adventure-brown/30 uppercase tracking-widest">Architect:</span>
+            <a 
+              href="https://x.com/rxjax007" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-display font-bold text-xs text-adventure-amber hover:text-adventure-dark transition-colors"
+            >
+              RxJax (@rxjax007)
+            </a>
+          </div>
         </div>
       </motion.div>
     </div>
