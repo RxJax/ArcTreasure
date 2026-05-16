@@ -1,0 +1,171 @@
+@import "tailwindcss";
+
+@theme {
+  --color-adventure-gold: #D4AF37;
+  --color-adventure-sand: #FDF5E6;
+  --color-adventure-jungle: #1B3F18;
+  --color-adventure-brown: #000000;
+  --color-adventure-dark: #080808;
+  --color-adventure-accent: #8B4513;
+  --color-adventure-amber: #B8860B;
+  
+  --font-serif: "EB Garamond", serif;
+  --font-display: "Cinzel", serif;
+  --font-accent: "Homemade Apple", cursive;
+
+  --animate-flicker: flicker 3s linear infinite;
+  --animate-float-dust: float-dust 10s ease-in-out infinite;
+  --animate-scroll-open: scroll-open 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% { opacity: 0.95; }
+    10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% { opacity: 1; }
+    52% { opacity: 0.85; }
+    53% { opacity: 0.95; }
+  }
+
+  @keyframes float-dust {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.2; }
+    33% { transform: translate(100px, -50px) rotate(10deg); opacity: 0.4; }
+    66% { transform: translate(-50px, -100px) rotate(-5deg); opacity: 0.3; }
+  }
+
+  @keyframes scroll-open {
+    from { transform: scaleX(0); opacity: 0; }
+    to { transform: scaleX(1); opacity: 1; }
+  }
+}
+
+:root {
+  font-family: 'EB Garamond', 'Garamond', serif;
+  background-color: #050404;
+  color: #e2d1b3;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Cinzel', 'Serif', serif;
+  letter-spacing: 0.08em;
+  font-weight: 900 !important;
+  line-height: 1.2;
+}
+
+.font-accent {
+  font-family: 'Homemade Apple', 'Cursive', cursive;
+  font-weight: normal;
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: #0c0a09;
+}
+
+/* Ancient UI Components */
+@layer components {
+  .parchment-card {
+    background-color: #FDF5E6;
+    border: 1px solid #D2B48C;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.7), inset 0 0 100px rgba(210,180,140,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stone-panel {
+    background-color: #111111;
+    border: 1px solid #222222;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-adventure {
+    @apply relative px-8 py-3 font-display font-bold text-adventure-dark uppercase tracking-widest transition-all duration-300 overflow-hidden rounded;
+    background: linear-gradient(to bottom, #D4AF37, #C19A6B);
+    box-shadow: 0 4px 0 #78350F, 0 8px 15px rgba(0,0,0,0.4);
+  }
+
+  .btn-adventure:hover {
+    @apply -translate-y-0.5;
+    box-shadow: 0 6px 0 #78350F, 0 12px 20px rgba(0,0,0,0.5);
+  }
+
+  .btn-adventure:active {
+    @apply translate-y-1;
+    box-shadow: 0 0 0 #78350F, 0 4px 10px rgba(0,0,0,0.5);
+  }
+
+  .explorer-border {
+    border-image: url('https://www.transparenttextures.com/patterns/pinstriped-suit.png') 30 round;
+    border-width: 4px;
+    border-style: solid;
+  }
+}
+
+/* Atmosphere Effects */
+.candle-glow {
+  box-shadow: 0 0 40px 10px rgba(255, 191, 0, 0.1);
+  filter: blur(2px);
+}
+
+.dust-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.dust-particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.1;
+  filter: blur(1px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c0a09;
+  border-left: 1px solid #1a0f0e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border: 3px solid #0c0a09;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FFBF00;
+}
+
+/* Animations and Particles */
+.glow-relic {
+  animation: relic-pulse 4s ease-in-out infinite;
+}
+
+@keyframes relic-pulse {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.4)); }
+  50% { filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.8)); }
+}
+
+.journal-entry {
+  @apply relative pl-6 border-l-2 border-adventure-gold/30 py-2;
+}
+
+.journal-entry::before {
+  content: '';
+  @apply absolute left-[-5px] top-4 w-2 h-2 rounded-full bg-adventure-gold;
+}
